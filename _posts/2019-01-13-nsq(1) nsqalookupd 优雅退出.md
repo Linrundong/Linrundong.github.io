@@ -4,6 +4,7 @@
 
 ### 启动流程
 - ==在程序生命周期里会有三个线程：Main线程，HTTP协程，TCP协程==
+
 ```
 prg := &program{}
 if err := svc.Run(prg, syscall.SIGINT, syscall.SIGTERM); err != nil {
