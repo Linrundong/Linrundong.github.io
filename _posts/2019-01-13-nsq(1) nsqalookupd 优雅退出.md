@@ -32,8 +32,9 @@ svg.signalNotify(signalChan, ws.signals...)
 err = prg.Stop()
 ```
 #### 使用sync.WaitGroup加锁开启协程
-> 加锁可保证wait()时能等待所有线程完成
+- 加锁可保证wait()时能等待所有线程完成
 <br>
+
 ```
 type WaitGroupWrapper struct {
 	sync.WaitGroup
