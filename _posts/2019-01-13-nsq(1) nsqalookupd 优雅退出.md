@@ -3,7 +3,7 @@
 > 利用SVC框架启动，当收到退出信号时，先等待任务处理完毕调用Stop方法等待业务处理完毕再退出
 
 ### 启动流程
-- ==在程序生命周期里会有三个线程：Main线程，HTTP协程，TCP协程==
+- ==在程序生命周期里会有三个线程：Main线程，HTTP协程，TCP协程==<br>
 
 ```
 prg := &program{}
@@ -33,6 +33,7 @@ err = prg.Stop()
 ```
 #### 使用sync.WaitGroup加锁开启协程
 > 加锁可保证wait()时能等待所有线程完成
+<br>
 ```
 type WaitGroupWrapper struct {
 	sync.WaitGroup
