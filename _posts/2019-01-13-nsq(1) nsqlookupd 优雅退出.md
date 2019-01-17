@@ -4,37 +4,37 @@
 
 ### 启动流程
 - ==在程序生命周期里会有三个线程：Main线程，HTTP协程，TCP协程==<br>
-
 ```
-prg := &program{}
-if err := svc.Run(prg, syscall.SIGINT, syscall.SIGTERM); err != nil {
-	log.Fatal(err)
+// nsqlookupd.main()
+func main() {
+    prg := &program{}
+    if err := svc.Run(prg, syscall.SIGINT, syscall.SIGTERM); err != nil {
+    	log.Fatal(err)
+    }
+    
+    // 初始化
+    if err = prg.Init(service); err != nil {
+    	return err
+    }
+    
+    // 启动业务进程
+    // Start()内部会在创建两个监听端口的协程
+    err := prg.Start()
+    if err != nil {
+    	return err
+    }
+    
+    // 阻塞等待退出信号
+    signalChan := make(chan os.Signal, 1)
+    svg.signalNotify(signalChan, ws.signals...)
+    <-signalChan
+    
+    // 退出
+    err = prg.Stop()
 }
-
-// 初始化
-if err = prg.Init(service); err != nil {
-	return err
-}
-
-// 启动业务进程
-// Start()内部会在创建两个监听端口的协程
-err := prg.Start()
-if err != nil {
-	return err
-}
-
-// 阻塞等待退出信号
-signalChan := make(chan os.Signal, 1)
-svg.signalNotify(signalChan, ws.signals...)
-<-signalChan
-
-// 退出
-err = prg.Stop()
 ```
 #### 使用sync.WaitGroup加锁开启协程
 - 加锁可保证wait()时能等待所有线程完成
-<br>
-
 ```
 type WaitGroupWrapper struct {
 	sync.WaitGroup

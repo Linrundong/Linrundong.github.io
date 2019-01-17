@@ -5,60 +5,66 @@
 - 创建两个协程分别监听HTTP和TCP端口
 
 ```
-prg := &program{}
-if err := svc.Run(prg, syscall.SIGINT, syscall.SIGTERM); err != nil {
-	log.Fatal(err)
+// nsqd.main()
+func main() {
+    prg := &program{}
+    if err := svc.Run(prg, syscall.SIGINT, syscall.SIGTERM); err != nil {
+    	log.Fatal(err)
+    }
+    
+    // 初始化
+    if err = prg.Init(service); err != nil {
+    	return err
+    }
+    
+    // 启动业务进程
+    err := prg.Start()
+    if err != nil {
+    	return err
+    }
+    
+    // 阻塞等待退出信号
+    signalChan := make(chan os.Signal, 1)
+    svg.signalNotify(signalChan, ws.signals...)
+    <-signalChan
+    
+    // 退出
+    err = prg.Stop()
 }
-
-// 初始化
-if err = prg.Init(service); err != nil {
-	return err
-}
-
-// 启动业务进程
-err := prg.Start()
-if err != nil {
-	return err
-}
-
-// 阻塞等待退出信号
-signalChan := make(chan os.Signal, 1)
-svg.signalNotify(signalChan, ws.signals...)
-<-signalChan
-
-// 退出
-err = prg.Stop()
 ```
 
 #### Main线程与nsqlookupd差异
-    - nsqlookupd的HTTP线程与消费者通讯, TCP端口作为Server与nsq 通讯(长连接)
-    - nsqd的TCP端口接收客户端(生产者)消息,HTTP端口提供HTTP API接收客户端(生产者)消息
-    - ==TODO 交互方式未知==
+- nsqlookupd的HTTP线程与消费者通讯, TCP端口作为Server与nsq 通讯(长连接)
+- nsqd的TCP端口接收客户端(生产者)消息,HTTP端口提供HTTP API接收客户端(生产者)消息
+- ==TODO 交互方式未知==
     
 ```
-tcpServer := &tcpServer{ctx: ctx}
-n.waitGroup.Wrap(func() {
-	// 协程连接客户端（生产者）
-	protocol.TCPServer(n.tcpListener, tcpServer, n.logf)
-})
-
-// 监听端口提供HTTP API
-httpServer := newHTTPServer(ctx, false, n.getOpts().TLSRequired == TLSRequired)
-n.waitGroup.Wrap(func() {
-	http_api.Serve(n.httpListener, httpServer, "HTTP", n.logf)
-})
-if n.tlsConfig != nil && n.getOpts().HTTPSAddress != "" {
-	httpsServer := newHTTPServer(ctx, true, true)
-	n.waitGroup.Wrap(func() {
-		http_api.Serve(n.httpsListener, httpsServer, "HTTPS", n.logf)
-	})
-}
-
-// 退出等待
-n.waitGroup.Wrap(n.queueScanLoop)
-n.waitGroup.Wrap(n.lookupLoop)
-if n.getOpts().StatsdAddress != "" {
-	n.waitGroup.Wrap(n.statsdLoop)
+func (n *NSQD) Main() {
+    tcpServer := &tcpServer{ctx: ctx}
+    n.waitGroup.Wrap(func() {
+    	// 协程连接客户端（生产者）
+    	protocol.TCPServer(n.tcpListener, tcpServer, n.logf)
+    })
+    
+    // 监听端口提供HTTP API
+    httpServer := newHTTPServer(ctx, false, n.getOpts().TLSRequired == TLSRequired)
+    n.waitGroup.Wrap(func() {
+    	http_api.Serve(n.httpListener, httpServer, "HTTP", n.logf)
+    })
+    if n.tlsConfig != nil && n.getOpts().HTTPSAddress != "" {
+    	httpsServer := newHTTPServer(ctx, true, true)
+    	n.waitGroup.Wrap(func() {
+    		http_api.Serve(n.httpsListener, httpsServer, "HTTPS", n.logf)
+    	})
+    }
+    
+    // 超时消息检索和处理任务
+    n.waitGroup.Wrap(n.queueScanLoop)
+    n.waitGroup.Wrap(n.queueScanLoop)
+    n.waitGroup.Wrap(n.lookupLoop)
+    if n.getOpts().StatsdAddress != "" {
+    	n.waitGroup.Wrap(n.statsdLoop)
+    }
 }
 ```
 
