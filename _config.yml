@@ -1,5 +1,5 @@
 # Site settings
-title: linrundong | Blog
+title: 咖喱GayGay蹦蹦蹦~
 SEOTitle: linrundong | Blog
 header-img: img/post-bg-desk.jpg
 email: 2653625765@qq.com
@@ -11,7 +11,7 @@ github_repo: "https://github.com/Linrundong.github.io.git" # you code repository
 
 # Sidebar settings
 sidebar: true                           # whether or not using Sidebar.
-sidebar-about-description: "咖喱GayGay蹦蹦蹦~"
+sidebar-about-description: "隐形贫困程序员"
 sidebar-avatar: /img/34540804.jpg      # use absolute URL, seeing it's used in both `/` and `/about/`
 
 
